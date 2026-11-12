@@ -44,5 +44,6 @@
 	"minemelody.position.top_right": "Arriba derecha",
 	"minemelody.position.bottom_right": "Abajo derecha",
 	"minemelody.position.bottom_left": "Abajo izquierda",
-	"minemelody.banner.header": "♪ Sonando ahora"
+	"minemelody.banner.header": "♪ Sonando ahora",
+	"minemelody.search.hint": "Buscar canción, artista o grupo..."
 }

@@ -44,5 +44,6 @@
 	"minemelody.position.top_right": "Top right",
 	"minemelody.position.bottom_right": "Bottom right",
 	"minemelody.position.bottom_left": "Bottom left",
-	"minemelody.banner.header": "♪ Now playing"
+	"minemelody.banner.header": "♪ Now playing",
+	"minemelody.search.hint": "Search track, artist or group..."
 }

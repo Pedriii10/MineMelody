@@ -2,11 +2,13 @@ package com.pedro.minemelody.gui;
 
 import com.pedro.minemelody.MineMelodyClient;
 import com.pedro.minemelody.config.PlaylistConfig;
+import com.pedro.minemelody.core.SearchQuery;
 import com.pedro.minemelody.playback.PlaylistPlayer;
 import com.pedro.minemelody.playback.PlaylistSoundInstance;
 import com.pedro.minemelody.track.Track;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -23,8 +25,9 @@ import java.util.function.Supplier;
  * <pre>
  *  ┌──────────── Playlist de música ────────────┐
  *  │ Canciones (60)        │ Tu playlist (3)     │
- *  │ [Overworld] Sweden    │ C418 - Sweden       │
- *  │ [Disco] cat (bloq.)   │ C418 - Wet Hands    │
+ *  │ [Buscar...         ]  │ C418 - Sweden       │
+ *  │ [Overworld] Sweden    │ C418 - Wet Hands    │
+ *  │ [Disco] cat (bloq.)   │ ...                 │
  *  │ ...                   │ ...                 │
  *  ├────────────────────────────────────────────┤
  *  │ Añadir  Quitar  Subir  Bajar  Vaciar  Todas │
@@ -51,6 +54,7 @@ public final class PlaylistScreen extends Screen {
 	private static final int LIST_TOP = 46;
 	private static final int BUTTON_HEIGHT = 20;
 	private static final int BUTTON_GAP = 4;
+	private static final int SEARCH_HEIGHT = 16;
 
 	private final Screen parent;
 	private final PlaylistConfig config = MineMelodyClient.config();
@@ -59,6 +63,11 @@ public final class PlaylistScreen extends Screen {
 	private TrackListWidget catalogList;
 	private TrackListWidget playlistList;
 	private Button listenButton;
+	private EditBox searchBox;
+
+	/** Se guarda fuera del EditBox para no perderlo si la ventana cambia de tamaño (init se re-ejecuta). */
+	private String searchText = "";
+	private SearchQuery search = SearchQuery.of("");
 
 	/** Última canción clicada en CUALQUIERA de las dos listas: es la que suena con "Escuchar". */
 	private String clickedTrackId;
@@ -77,8 +86,16 @@ public final class PlaylistScreen extends Screen {
 		int columnWidth = (width - MARGIN * 3) / 2;
 		int listHeight = height - LIST_TOP - (BUTTON_HEIGHT + BUTTON_GAP) * 3 - MARGIN;
 
-		catalogList = addRenderableWidget(new TrackListWidget(minecraft, MARGIN, LIST_TOP, columnWidth, listHeight,
-				this::onRowClicked, row -> addTrack(row.id())));
+		searchBox = addRenderableWidget(new EditBox(font, MARGIN, LIST_TOP, columnWidth, SEARCH_HEIGHT,
+				Component.translatable("minemelody.search.hint")));
+		searchBox.setHint(Component.translatable("minemelody.search.hint"));
+		searchBox.setMaxLength(64);
+		searchBox.setValue(searchText);
+		searchBox.setResponder(this::onSearchChanged);
+
+		int catalogTop = LIST_TOP + SEARCH_HEIGHT + 4;
+		catalogList = addRenderableWidget(new TrackListWidget(minecraft, MARGIN, catalogTop, columnWidth,
+				listHeight - (catalogTop - LIST_TOP), this::onRowClicked, row -> addTrack(row.id())));
 		playlistList = addRenderableWidget(new TrackListWidget(minecraft, MARGIN * 2 + columnWidth, LIST_TOP, columnWidth, listHeight,
 				this::onRowClicked, row -> removeTrack(row.id())));
 
@@ -148,6 +165,12 @@ public final class PlaylistScreen extends Screen {
 	}
 
 	// ---------------------------------------------------------------- acciones
+
+	private void onSearchChanged(String text) {
+		searchText = text;
+		search = SearchQuery.of(text);
+		refreshLists(catalogList.selectedId(), playlistList.selectedId());
+	}
 
 	private void onRowClicked(TrackListWidget.Row row) {
 		clickedTrackId = row.id();
@@ -239,7 +262,9 @@ public final class PlaylistScreen extends Screen {
 	private void refreshLists(String selectedCatalogId, String selectedPlaylistId) {
 		List<TrackListWidget.Row> catalogRows = new ArrayList<>();
 		for (Track track : player.catalog().all()) {
-			catalogRows.add(catalogRow(track));
+			if (search.matches(track.group().label().getString() + " " + track.title().getString())) {
+				catalogRows.add(catalogRow(track));
+			}
 		}
 		catalogList.setRows(catalogRows, selectedCatalogId);
 
