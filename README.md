@@ -1,4 +1,4 @@
-# Music Playlist (Fabric · Minecraft 26.3)
+# MineMelody (Fabric · Minecraft 26.3)
 
 Armá tu propia playlist con la música de Minecraft. Se acabaron los 20 minutos de silencio entre canciones.
 
@@ -45,11 +45,11 @@ El mod se mete con **Mixins** en tres puntos:
 ### Estructura
 
 ```
-com.pedro.musicplaylist
+com.pedro.minemelody
 ├── core/        Lógica pura, SIN Minecraft → testeable con JUnit
 │   ├── PlaylistQueue    decide la siguiente canción (orden / aleatorio / repetir)
 │   └── PlaybackMode
-├── config/      PlaylistConfig → config/musicplaylist.json
+├── config/      PlaylistConfig → config/minemelody.json
 ├── track/       Track, TrackGroup, TrackCatalog (descubre todas las canciones cargadas)
 ├── unlock/      DiscUnlockTracker (regla de discos en survival)
 ├── playback/    PlaylistPlayer (une todo) + PlaylistSoundInstance (fuerza una canción concreta)

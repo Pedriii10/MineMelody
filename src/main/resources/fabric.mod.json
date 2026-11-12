@@ -1,22 +1,26 @@
 {
 	"schemaVersion": 1,
-	"id": "musicplaylist",
+	"id": "minemelody",
 	"version": "${version}",
-	"name": "Music Playlist",
-	"description": "Armá tu propia playlist con la música de Minecraft. En survival, los discos se desbloquean consiguiéndolos.",
+	"name": "MineMelody",
+	"description": "Turn the Minecraft soundtrack into your own playlist. In survival, music discs unlock when you obtain them.",
 	"authors": [
-		"Pedro"
+		"Pedriii10"
 	],
+	"contact": {
+		"sources": "https://github.com/Pedriii10/MineMelody",
+		"issues": "https://github.com/Pedriii10/MineMelody/issues"
+	},
 	"license": "MIT",
-	"icon": "assets/musicplaylist/icon.png",
+	"icon": "assets/minemelody/icon.png",
 	"environment": "client",
 	"entrypoints": {
 		"client": [
-			"com.pedro.musicplaylist.MusicPlaylistClient"
+			"com.pedro.minemelody.MineMelodyClient"
 		]
 	},
 	"mixins": [
-		"musicplaylist.mixins.json"
+		"minemelody.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.20.0",

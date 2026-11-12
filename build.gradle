@@ -5,7 +5,7 @@ plugins {
 // Mod 100% de cliente: no usamos splitEnvironmentSourceSets, todo vive en src/main.
 loom {
 	mods {
-		"musicplaylist" {
+		"minemelody" {
 			sourceSet sourceSets.main
 		}
 	}

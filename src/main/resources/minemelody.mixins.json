@@ -1,0 +1,17 @@
+{
+	"required": true,
+	"package": "com.pedro.minemelody.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"MusicManagerAccessor",
+		"MusicManagerMixin",
+		"SoundOptionsScreenMixin",
+		"WeighedSoundEventsAccessor"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

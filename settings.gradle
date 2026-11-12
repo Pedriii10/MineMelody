@@ -9,4 +9,4 @@ pluginManagement {
 	}
 }
 
-rootProject.name = 'music-playlist'
+rootProject.name = 'minemelody'
