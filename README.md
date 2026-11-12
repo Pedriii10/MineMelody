@@ -10,6 +10,7 @@ Armá tu propia playlist con la música de Minecraft. Se acabaron los 20 minutos
 - Exportar/importar la playlist como texto para compartirla.
 - Banner de "Sonando ahora" en la esquina que elijas, y botón para pre-escuchar cualquier canción.
 - **Varias playlists con nombre** ("Para minar", "Para construir"...), y cada una puede atarse a una dimensión: al entrar al Nether suena tu playlist del Nether.
+- Banner de "Sonando ahora" configurable: nunca, al empezar cada canción o siempre visible con barra de progreso; en la esquina y del tamaño que quieras (50%-200%), con vista previa.
 - Duración de cada canción y barra de progreso (leídas del propio archivo .ogg).
 - Teclas opcionales (sin asignar por defecto: Opciones → Controles → MineMelody): siguiente canción, siguiente playlist, pausar/reanudar, subir/bajar volumen.
 - 100% cliente: funciona aunque el servidor no tenga el mod.
