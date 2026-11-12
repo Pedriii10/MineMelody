@@ -35,6 +35,7 @@ public final class MineMelodyClient implements ClientModInitializer {
 
 	private KeyMapping openScreenKey;
 	private KeyMapping skipKey;
+	private KeyMapping nextPlaylistKey;
 
 	@Override
 	public void onInitializeClient() {
@@ -46,13 +47,15 @@ public final class MineMelodyClient implements ClientModInitializer {
 				new KeyMapping("key.minemelody.open", InputConstants.KEY_M, KEY_CATEGORY));
 		skipKey = KeyMappingHelper.registerKeyMapping(
 				new KeyMapping("key.minemelody.skip", InputConstants.UNKNOWN.getValue(), KEY_CATEGORY));
+		nextPlaylistKey = KeyMappingHelper.registerKeyMapping(
+				new KeyMapping("key.minemelody.next_playlist", InputConstants.UNKNOWN.getValue(), KEY_CATEGORY));
 
 		banner = new NowPlayingBanner(config);
 		HudElementRegistry.addLast(Identifier.fromNamespaceAndPath(MOD_ID, "now_playing"), banner);
 
 		ClientTickEvents.END_CLIENT_TICK.register(this::onClientTick);
 
-		LOGGER.info("MineMelody listo: {} canciones en tu playlist", config.tracks.size());
+		LOGGER.info("MineMelody listo: {} playlists", config.library.playlists().size());
 	}
 
 	private void onClientTick(Minecraft minecraft) {
@@ -63,6 +66,9 @@ public final class MineMelodyClient implements ClientModInitializer {
 		}
 		while (skipKey.consumeClick()) {
 			player.skip(minecraft);
+		}
+		while (nextPlaylistKey.consumeClick()) {
+			player.cyclePlaylist(minecraft, 1);
 		}
 	}
 

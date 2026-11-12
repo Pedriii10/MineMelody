@@ -2,10 +2,13 @@ package com.pedro.minemelody.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import com.pedro.minemelody.MineMelodyClient;
 import com.pedro.minemelody.core.BannerPosition;
 import com.pedro.minemelody.core.PlaybackMode;
+import com.pedro.minemelody.core.PlaylistLibrary;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.IOException;
@@ -14,10 +17,9 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,11 +34,16 @@ public final class PlaylistConfig {
 	/** Nombre del archivo antes de renombrar el mod a MineMelody (v0.1.0). */
 	private static final Path LEGACY_FILE = FabricLoader.getInstance().getConfigDir().resolve("musicplaylist.json");
 
+	/** Nombre de la playlist que se crea la primera vez (y al migrar desde v1). */
+	public static final String DEFAULT_PLAYLIST_NAME = "Principal";
+
+	/** Versión del FORMATO de este archivo. Ver {@link ConfigMigration}. */
+	public int configVersion = ConfigMigration.CURRENT_VERSION;
 	/** Si la playlist manda sobre la música del juego. */
 	public boolean enabled = false;
-	/** Ids de los archivos de sonido, en orden. Ej: "minecraft:music/game/sweden". */
-	public List<String> tracks = new ArrayList<>();
-	/** Canciones marcadas con ★ (ids, igual que en tracks). */
+	/** Tus playlists con nombre. Los ids de canción son tipo "minecraft:music/game/sweden". */
+	public PlaylistLibrary library = PlaylistLibrary.withDefault(DEFAULT_PLAYLIST_NAME);
+	/** Canciones marcadas con ★ (mismos ids que en las playlists). */
 	public Set<String> favorites = new LinkedHashSet<>();
 	public PlaybackMode mode = PlaybackMode.IN_ORDER;
 	/** Silencio entre canciones, en segundos. */
@@ -53,11 +60,22 @@ public final class PlaylistConfig {
 		migrateLegacyFile();
 		if (Files.exists(FILE)) {
 			try (Reader reader = Files.newBufferedReader(FILE, StandardCharsets.UTF_8)) {
-				PlaylistConfig config = GSON.fromJson(reader, PlaylistConfig.class);
-				if (config != null) {
-					return config.sanitized();
+				JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
+				int fileVersion = json.has("configVersion") ? json.get("configVersion").getAsInt() : 1;
+				if (fileVersion < ConfigMigration.CURRENT_VERSION) {
+					backup(fileVersion);
 				}
-			} catch (IOException | JsonParseException e) {
+
+				PlaylistConfig config = GSON.fromJson(ConfigMigration.migrate(json, DEFAULT_PLAYLIST_NAME), PlaylistConfig.class);
+				if (config != null) {
+					config.sanitized();
+					if (fileVersion < ConfigMigration.CURRENT_VERSION) {
+						config.save(); // guardamos ya en el formato nuevo
+						MineMelodyClient.LOGGER.info("Config migrada de v{} a v{}", fileVersion, ConfigMigration.CURRENT_VERSION);
+					}
+					return config;
+				}
+			} catch (IOException | JsonParseException | IllegalStateException e) {
 				MineMelodyClient.LOGGER.error("No pude leer {}, uso valores por defecto", FILE, e);
 			}
 		}
@@ -78,6 +96,19 @@ public final class PlaylistConfig {
 		}
 	}
 
+	/**
+	 * Regla de oro de las migraciones: ANTES de tocar nada, copia de seguridad.
+	 * Si el migrador tuviera un bug, el archivo original sigue a salvo.
+	 */
+	private static void backup(int fileVersion) {
+		Path backup = FILE.resolveSibling("minemelody.v" + fileVersion + ".backup.json");
+		try {
+			Files.copy(FILE, backup, StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			MineMelodyClient.LOGGER.error("No pude crear el backup {}", backup, e);
+		}
+	}
+
 	public void save() {
 		try {
 			Files.createDirectories(FILE.getParent());
@@ -95,7 +126,8 @@ public final class PlaylistConfig {
 
 	/** Un JSON editado a mano puede traer nulls: los reemplazamos por valores sanos. */
 	private PlaylistConfig sanitized() {
-		if (tracks == null) tracks = new ArrayList<>();
+		if (library == null) library = PlaylistLibrary.withDefault(DEFAULT_PLAYLIST_NAME);
+		library.repair(DEFAULT_PLAYLIST_NAME);
 		if (favorites == null) favorites = new LinkedHashSet<>();
 		if (mode == null) mode = PlaybackMode.IN_ORDER;
 		if (unlockedDiscs == null) unlockedDiscs = new HashMap<>();

@@ -1,5 +1,6 @@
 package com.pedro.minemelody.playback;
 
+import com.pedro.minemelody.core.Playlist;
 import com.pedro.minemelody.track.Track;
 import net.minecraft.client.resources.sounds.AbstractSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
@@ -21,15 +22,21 @@ import net.minecraft.sounds.SoundSource;
 public final class PlaylistSoundInstance extends AbstractSoundInstance {
 
 	private final Track track;
+	/**
+	 * Playlist de la que salió (o null si es una pre-escucha). Guardamos la REFERENCIA y no el
+	 * nombre: si renombrás la playlist mientras suena, sigue siendo la misma.
+	 */
+	private final Playlist playlist;
 
 	/**
 	 * @param situationalEvent el evento de música que pide el juego en este momento. Lo usamos como
 	 *                         identificador para que el MusicManager no crea que "hay que cambiar
 	 *                         de música" y nos corte la canción a mitad.
 	 */
-	public PlaylistSoundInstance(Identifier situationalEvent, Track track) {
+	public PlaylistSoundInstance(Identifier situationalEvent, Track track, Playlist playlist) {
 		super(situationalEvent, SoundSource.MUSIC, SoundInstance.createUnseededRandom());
 		this.track = track;
+		this.playlist = playlist;
 		this.volume = 1.0F;
 		this.pitch = 1.0F;
 		this.looping = false;
@@ -49,5 +56,9 @@ public final class PlaylistSoundInstance extends AbstractSoundInstance {
 
 	public Track track() {
 		return track;
+	}
+
+	public Playlist playlist() {
+		return playlist;
 	}
 }

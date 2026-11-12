@@ -1,6 +1,7 @@
 package com.pedro.minemelody.playback;
 
 import com.pedro.minemelody.config.PlaylistConfig;
+import com.pedro.minemelody.core.Playlist;
 import com.pedro.minemelody.core.PlaylistQueue;
 import com.pedro.minemelody.mixin.MusicManagerAccessor;
 import com.pedro.minemelody.track.Track;
@@ -11,6 +12,8 @@ import net.minecraft.client.sounds.MusicManager;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.Music;
 
+import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
@@ -32,7 +35,9 @@ public final class PlaylistPlayer {
 	private final PlaylistConfig config;
 	private final TrackCatalog catalog;
 	private final DiscUnlockTracker unlocks;
-	private final PlaylistQueue queue = new PlaylistQueue(new Random());
+	private final Random random = new Random();
+	/** Una cola por playlist: cada una recuerda por dónde iba (y su bolsa de shuffle). */
+	private final Map<Playlist, PlaylistQueue> queues = new IdentityHashMap<>();
 
 	/** Canción pedida con "Escuchar": suena la próxima, aunque la playlist esté apagada. */
 	private String requestedTrack;
@@ -52,7 +57,7 @@ public final class PlaylistPlayer {
 			return false;
 		}
 		ensureCatalog(minecraft);
-		return config.tracks.stream()
+		return effectivePlaylist(minecraft).tracks().stream()
 				.map(catalog::get)
 				.flatMap(Optional::stream)
 				.anyMatch(track -> unlocks.isAvailable(minecraft, track));
@@ -66,16 +71,17 @@ public final class PlaylistPlayer {
 			catalog.refresh(minecraft.getSoundManager());
 			Optional<Track> track = catalog.get(requested);
 			if (track.isPresent()) {
-				return new PlaylistSoundInstance(situational.sound().value().location(), track.get());
+				return new PlaylistSoundInstance(situational.sound().value().location(), track.get(), null);
 			}
 		}
 
 		if (!shouldHandle(minecraft, situational)) return null;
 
 		catalog.refresh(minecraft.getSoundManager()); // por si cambiaron los resource packs
-		return queue.next(config.tracks, id -> isPlayable(minecraft, id), config.mode)
+		Playlist playlist = effectivePlaylist(minecraft);
+		return queueFor(playlist).next(playlist.tracks(), id -> isPlayable(minecraft, id), config.mode)
 				.flatMap(catalog::get)
-				.map(track -> new PlaylistSoundInstance(situational.sound().value().location(), track))
+				.map(track -> new PlaylistSoundInstance(situational.sound().value().location(), track, playlist))
 				.orElse(null);
 	}
 
@@ -110,9 +116,43 @@ public final class PlaylistPlayer {
 				: Optional.empty();
 	}
 
-	/** Se llama cuando cambia la playlist entera, para que el orden arranque de cero. */
-	public void resetQueue() {
-		queue.reset();
+	/**
+	 * La playlist que tiene que sonar AHORA: la atada a tu dimensión (si tiene canciones)
+	 * o la activa.
+	 */
+	public Playlist effectivePlaylist(Minecraft minecraft) {
+		return config.library.effective(dimensionId(minecraft));
+	}
+
+	/** Se llama cuando cambia una playlist entera, para que su orden arranque de cero. */
+	public void resetQueue(Playlist playlist) {
+		queues.remove(playlist);
+	}
+
+	/**
+	 * ¿La canción que suena salió de otra playlist distinta de la que toca ahora? Pasa al cambiar
+	 * de playlist activa o al entrar en una dimensión que tiene su propia playlist.
+	 */
+	public boolean playlistChanged(Minecraft minecraft, PlaylistSoundInstance playing) {
+		return config.enabled && playing.playlist() != null && playing.playlist() != effectivePlaylist(minecraft);
+	}
+
+	/** Pasa a la siguiente/anterior playlist (tecla rápida) y avisa en pantalla. */
+	public void cyclePlaylist(Minecraft minecraft, int direction) {
+		config.library.cycle(direction);
+		config.save();
+		if (minecraft.player != null) {
+			minecraft.player.sendOverlayMessage(net.minecraft.network.chat.Component.translatable(
+					"minemelody.overlay.playlist", config.library.active().name()));
+		}
+	}
+
+	private PlaylistQueue queueFor(Playlist playlist) {
+		return queues.computeIfAbsent(playlist, k -> new PlaylistQueue(random));
+	}
+
+	public static String dimensionId(Minecraft minecraft) {
+		return minecraft.level == null ? null : minecraft.level.dimension().identifier().toString();
 	}
 
 	public int gapTicks() {

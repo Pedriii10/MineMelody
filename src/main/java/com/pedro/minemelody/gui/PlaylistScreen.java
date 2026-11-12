@@ -2,7 +2,9 @@ package com.pedro.minemelody.gui;
 
 import com.pedro.minemelody.MineMelodyClient;
 import com.pedro.minemelody.config.PlaylistConfig;
+import com.pedro.minemelody.core.Playlist;
 import com.pedro.minemelody.core.PlaylistCodec;
+import com.pedro.minemelody.core.PlaylistLibrary;
 import com.pedro.minemelody.core.SearchQuery;
 import com.pedro.minemelody.playback.PlaylistPlayer;
 import com.pedro.minemelody.playback.PlaylistSoundInstance;
@@ -27,6 +29,7 @@ import java.util.function.Supplier;
  * Pantalla para armar la playlist.
  * <pre>
  *  ┌──────────── Playlist de música ────────────┐
+ *  │ ◀ [Minar         ] ▶  + Nueva  Borrar  Dim. │
  *  │ Canciones (60)        │ Tu playlist (3)     │
  *  │ [Buscar...         ]  │ C418 - Sweden       │
  *  │ [Overworld] Sweden    │ C418 - Wet Hands    │
@@ -43,6 +46,10 @@ import java.util.function.Supplier;
 public final class PlaylistScreen extends Screen {
 
 	private static final int[] GAP_OPTIONS = {0, 1, 3, 5, 10, 30, 60};
+	/** Ciclo del botón de dimensión: null = suena en cualquiera. */
+	private static final String[] DIMENSIONS = {null, "minecraft:overworld", "minecraft:the_nether", "minecraft:the_end"};
+	private static final int INVALID_NAME_COLOR = 0xFFFF6B6B;
+	private static final int VALID_NAME_COLOR = 0xFFE0E0E0;
 	private static final SystemToast.SystemToastId TOAST_ID = new SystemToast.SystemToastId();
 
 	private static final int WHITE = 0xFFFFFFFF;
@@ -55,7 +62,8 @@ public final class PlaylistScreen extends Screen {
 	private static final int MARGIN = 10;
 	private static final int TITLE_Y = 6;
 	private static final int NOW_PLAYING_Y = 18;
-	private static final int LIST_TOP = 46;
+	private static final int SELECTOR_Y = 30;
+	private static final int LIST_TOP = 66;
 	private static final int BUTTON_HEIGHT = 20;
 	private static final int BUTTON_GAP = 4;
 	private static final int SEARCH_HEIGHT = 16;
@@ -69,6 +77,7 @@ public final class PlaylistScreen extends Screen {
 	private Button listenButton;
 	private Button favoriteButton;
 	private EditBox searchBox;
+	private EditBox nameBox;
 
 	/** Se guarda fuera del EditBox para no perderlo si la ventana cambia de tamaño (init se re-ejecuta). */
 	private String searchText = "";
@@ -87,6 +96,8 @@ public final class PlaylistScreen extends Screen {
 	@Override
 	protected void init() {
 		player.catalog().refresh(minecraft.getSoundManager());
+
+		addPlaylistSelector();
 
 		int columnWidth = (width - MARGIN * 3) / 2;
 		int listHeight = height - LIST_TOP - (BUTTON_HEIGHT + BUTTON_GAP) * 3 - MARGIN;
@@ -183,6 +194,93 @@ public final class PlaylistScreen extends Screen {
 		minecraft.gui.setScreen(parent);
 	}
 
+	// ---------------------------------------------------------------- playlists con nombre
+
+	/** ◀ [nombre editable] ▶  + Nueva  Borrar  Dimensión */
+	private void addPlaylistSelector() {
+		int small = 20;
+		int medium = 56;
+		int dimensionWidth = 112;
+		int fixed = small * 2 + medium * 2 + dimensionWidth + BUTTON_GAP * 5;
+		int nameWidth = Math.max(80, width - MARGIN * 2 - fixed);
+		int x = MARGIN;
+
+		addRenderableWidget(Button.builder(Component.literal("◀"), b -> switchPlaylist(-1))
+				.bounds(x, SELECTOR_Y, small, BUTTON_HEIGHT).build());
+		x += small + BUTTON_GAP;
+
+		nameBox = addRenderableWidget(new EditBox(font, x, SELECTOR_Y, nameWidth, BUTTON_HEIGHT,
+				Component.translatable("minemelody.playlist.name")));
+		nameBox.setMaxLength(PlaylistLibrary.MAX_NAME_LENGTH);
+		nameBox.setValue(config.library.active().name());
+		nameBox.setResponder(this::onNameChanged);
+		nameBox.setTooltip(Tooltip.create(Component.translatable("minemelody.tooltip.playlist_name")));
+		x += nameWidth + BUTTON_GAP;
+
+		addRenderableWidget(Button.builder(Component.literal("▶"), b -> switchPlaylist(1))
+				.bounds(x, SELECTOR_Y, small, BUTTON_HEIGHT).build());
+		x += small + BUTTON_GAP;
+
+		addRenderableWidget(button("minemelody.button.new_playlist", this::createPlaylist)
+				.bounds(x, SELECTOR_Y, medium, BUTTON_HEIGHT).build());
+		x += medium + BUTTON_GAP;
+
+		Button delete = addRenderableWidget(button("minemelody.button.delete_playlist", this::deletePlaylist)
+				.tooltip(Tooltip.create(Component.translatable("minemelody.tooltip.delete_playlist")))
+				.bounds(x, SELECTOR_Y, medium, BUTTON_HEIGHT).build());
+		delete.active = config.library.playlists().size() > 1;
+		x += medium + BUTTON_GAP;
+
+		addRenderableWidget(toggle(this::dimensionLabel, "minemelody.tooltip.dimension", this::cycleDimension)
+				.bounds(x, SELECTOR_Y, dimensionWidth, BUTTON_HEIGHT).build());
+	}
+
+	private void onNameChanged(String text) {
+		boolean valid = config.library.renameActive(text);
+		nameBox.setTextColor(valid ? VALID_NAME_COLOR : INVALID_NAME_COLOR);
+		if (valid) config.save();
+	}
+
+	private void switchPlaylist(int direction) {
+		config.library.cycle(direction);
+		config.save();
+		rebuildWidgets(); // cambia todo: nombre, canciones, dimensión...
+	}
+
+	private void createPlaylist() {
+		config.library.create(Component.translatable("minemelody.playlist.default_name").getString());
+		config.save();
+		rebuildWidgets();
+	}
+
+	private void deletePlaylist() {
+		Playlist active = config.library.active();
+		minecraft.gui.setScreen(new ConfirmScreen(confirmed -> {
+			if (confirmed && config.library.deleteActive()) {
+				player.resetQueue(active);
+				config.save();
+			}
+			minecraft.gui.setScreen(this);
+		},
+				Component.translatable("minemelody.delete.confirm_title", active.name()),
+				Component.translatable("minemelody.delete.confirm_message", active.tracks().size())));
+	}
+
+	private Component dimensionLabel() {
+		String dimension = config.library.active().dimension();
+		String key = dimension == null ? "minemelody.dimension.any" : "minemelody.dimension." + dimension.substring(dimension.indexOf(':') + 1);
+		return Component.translatable("minemelody.button.dimension", Component.translatable(key));
+	}
+
+	private void cycleDimension() {
+		String current = config.library.active().dimension();
+		int index = 0;
+		for (int i = 0; i < DIMENSIONS.length; i++) {
+			if (java.util.Objects.equals(DIMENSIONS[i], current)) index = i;
+		}
+		config.library.bindActiveTo(DIMENSIONS[(index + 1) % DIMENSIONS.length]);
+	}
+
 	// ---------------------------------------------------------------- acciones
 
 	private void onSearchChanged(String text) {
@@ -231,12 +329,12 @@ public final class PlaylistScreen extends Screen {
 	// ---------------------------------------------------------------- compartir
 
 	private void exportPlaylist() {
-		if (config.tracks.isEmpty()) {
+		if (tracks().isEmpty()) {
 			toast("minemelody.toast.export_empty");
 			return;
 		}
-		minecraft.keyboardHandler.setClipboard(PlaylistCodec.encode(config.tracks));
-		toast("minemelody.toast.exported", config.tracks.size());
+		minecraft.keyboardHandler.setClipboard(PlaylistCodec.encode(tracks()));
+		toast("minemelody.toast.exported", tracks().size());
 	}
 
 	/**
@@ -250,7 +348,7 @@ public final class PlaylistScreen extends Screen {
 			return;
 		}
 		List<String> tracks = imported.get();
-		if (config.tracks.isEmpty()) {
+		if (tracks().isEmpty()) {
 			applyImport(tracks);
 			return;
 		}
@@ -259,13 +357,13 @@ public final class PlaylistScreen extends Screen {
 			minecraft.gui.setScreen(this);
 		},
 				Component.translatable("minemelody.import.confirm_title"),
-				Component.translatable("minemelody.import.confirm_message", config.tracks.size(), tracks.size())));
+				Component.translatable("minemelody.import.confirm_message", tracks().size(), tracks.size())));
 	}
 
 	private void applyImport(List<String> tracks) {
-		config.tracks.clear();
-		config.tracks.addAll(tracks);
-		player.resetQueue();
+		tracks().clear();
+		tracks().addAll(tracks);
+		player.resetQueue(config.library.active());
 		changed(null);
 		long missing = tracks.stream().filter(id -> player.catalog().get(id).isEmpty()).count();
 		toast(missing == 0 ? "minemelody.toast.imported" : "minemelody.toast.imported_missing", tracks.size(), missing);
@@ -278,49 +376,49 @@ public final class PlaylistScreen extends Screen {
 
 	private void addFavorites() {
 		for (String id : config.favorites) {
-			if (!config.tracks.contains(id) && player.catalog().get(id).isPresent()) {
-				config.tracks.add(id);
+			if (!tracks().contains(id) && player.catalog().get(id).isPresent()) {
+				tracks().add(id);
 			}
 		}
 		changed(null);
 	}
 
 	private void addTrack(String id) {
-		if (id == null || config.tracks.contains(id)) return;
-		config.tracks.add(id);
+		if (id == null || tracks().contains(id)) return;
+		tracks().add(id);
 		changed(id);
 	}
 
 	private void addAll() {
 		for (Track track : player.catalog().all()) {
 			String id = track.id().toString();
-			if (!config.tracks.contains(id)) config.tracks.add(id);
+			if (!tracks().contains(id)) tracks().add(id);
 		}
 		changed(null);
 	}
 
 	private void removeTrack(String id) {
 		if (id == null) return;
-		int index = config.tracks.indexOf(id);
+		int index = tracks().indexOf(id);
 		if (index < 0) return;
-		config.tracks.remove(index);
+		tracks().remove(index);
 		// Dejamos seleccionada la que quedó en ese lugar: así podés borrar varias seguidas.
-		changed(config.tracks.isEmpty() ? null : config.tracks.get(Math.min(index, config.tracks.size() - 1)));
+		changed(tracks().isEmpty() ? null : tracks().get(Math.min(index, tracks().size() - 1)));
 	}
 
 	private void moveSelected(int direction) {
 		String id = playlistList.selectedId();
 		if (id == null) return;
-		int from = config.tracks.indexOf(id);
+		int from = tracks().indexOf(id);
 		int to = from + direction;
-		if (from < 0 || to < 0 || to >= config.tracks.size()) return;
-		config.tracks.add(to, config.tracks.remove(from));
+		if (from < 0 || to < 0 || to >= tracks().size()) return;
+		tracks().add(to, tracks().remove(from));
 		changed(id);
 	}
 
 	private void clearPlaylist() {
-		config.tracks.clear();
-		player.resetQueue();
+		tracks().clear();
+		player.resetQueue(config.library.active());
 		changed(null);
 	}
 
@@ -349,6 +447,11 @@ public final class PlaylistScreen extends Screen {
 		refreshLists(catalogList.selectedId(), selectPlaylistId);
 	}
 
+	/** La playlist que estás editando es la ACTIVA de la biblioteca. */
+	private List<String> tracks() {
+		return config.library.active().tracks();
+	}
+
 	// ---------------------------------------------------------------- filas
 
 	private void refreshLists(String selectedCatalogId, String selectedPlaylistId) {
@@ -361,8 +464,8 @@ public final class PlaylistScreen extends Screen {
 		catalogList.setRows(catalogRows, selectedCatalogId);
 
 		List<TrackListWidget.Row> playlistRows = new ArrayList<>();
-		for (int i = 0; i < config.tracks.size(); i++) {
-			playlistRows.add(playlistRow(i + 1, config.tracks.get(i)));
+		for (int i = 0; i < tracks().size(); i++) {
+			playlistRows.add(playlistRow(i + 1, tracks().get(i)));
 		}
 		playlistList.setRows(playlistRows, selectedPlaylistId);
 	}
@@ -383,7 +486,7 @@ public final class PlaylistScreen extends Screen {
 	private TrackListWidget.Row catalogRow(Track track) {
 		String id = track.id().toString();
 		boolean available = player.unlocks().isAvailable(minecraft, track);
-		boolean inPlaylist = config.tracks.contains(id);
+		boolean inPlaylist = tracks().contains(id);
 
 		StringBuilder text = new StringBuilder()
 				.append(inPlaylist ? "✔ " : "")
@@ -414,7 +517,10 @@ public final class PlaylistScreen extends Screen {
 	private Component nowPlaying() {
 		Optional<PlaylistSoundInstance> current = player.currentSound(minecraft);
 		if (current.isPresent()) {
-			return Component.translatable("minemelody.screen.now_playing", current.get().track().title());
+			Playlist from = current.get().playlist();
+			return from == null
+					? Component.translatable("minemelody.screen.previewing", current.get().track().title())
+					: Component.translatable("minemelody.screen.now_playing_from", current.get().track().title(), from.name());
 		}
 		return config.enabled
 				? Component.translatable("minemelody.screen.waiting")

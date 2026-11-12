@@ -84,7 +84,7 @@ public abstract class MusicManagerMixin {
 		if (currentMusic == null) return;
 		PlaylistPlayer player = MineMelodyClient.player();
 
-		if (currentMusic instanceof PlaylistSoundInstance) {
+		if (currentMusic instanceof PlaylistSoundInstance ours) {
 			boolean finished = !minecraft.getSoundManager().isActive(currentMusic);
 
 			// Al cambiar de dimensión (ej: entrar al End) vanilla corta la música y vuelve a esperar
@@ -94,7 +94,10 @@ public abstract class MusicManagerMixin {
 					&& !situational.sound().value().location().equals(currentMusic.getIdentifier())
 					&& player.shouldHandle(minecraft, situational);
 
-			if (finished || vanillaWouldReplace) {
+			// Cambiaste de playlist (o de dimensión con playlist propia): pasamos a la nueva.
+			boolean playlistChanged = player.playlistChanged(minecraft, ours);
+
+			if (finished || vanillaWouldReplace || playlistChanged) {
 				minecraft.getSoundManager().stop(currentMusic);
 				currentMusic = null;
 				nextSongDelay = player.gapTicks();
