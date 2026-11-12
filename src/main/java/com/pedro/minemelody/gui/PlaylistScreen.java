@@ -30,9 +30,9 @@ import java.util.function.Supplier;
  *  │ [Disco] cat (bloq.)   │ ...                 │
  *  │ ...                   │ ...                 │
  *  ├────────────────────────────────────────────┤
- *  │ Añadir  Quitar  Subir  Bajar  Vaciar  Todas │
+ *  │ Añadir Quitar ▲ ▼ +Todas +★Favs Vaciar      │
  *  │ Playlist  Modo  Pausa  Discos  Banner  Esq. │
- *  │ ▶ Escuchar   ⏭ Siguiente          Listo     │
+ *  │ ▶ Escuchar  ★ Favorito  ⏭ Siguiente  Listo  │
  *  └────────────────────────────────────────────┘
  * </pre>
  * Cada cambio se guarda al instante: si el juego crashea, no perdés tu playlist.
@@ -63,6 +63,7 @@ public final class PlaylistScreen extends Screen {
 	private TrackListWidget catalogList;
 	private TrackListWidget playlistList;
 	private Button listenButton;
+	private Button favoriteButton;
 	private EditBox searchBox;
 
 	/** Se guarda fuera del EditBox para no perderlo si la ventana cambia de tamaño (init se re-ejecuta). */
@@ -103,9 +104,14 @@ public final class PlaylistScreen extends Screen {
 		addButtonRow(rowY,
 				button("minemelody.button.add", () -> addTrack(catalogList.selectedId())),
 				button("minemelody.button.remove", () -> removeTrack(playlistList.selectedId())),
-				button("minemelody.button.up", () -> moveSelected(-1)),
-				button("minemelody.button.down", () -> moveSelected(1)),
-				button("minemelody.button.add_all", this::addAll),
+				button("minemelody.button.up", () -> moveSelected(-1))
+						.tooltip(Tooltip.create(Component.translatable("minemelody.tooltip.up"))),
+				button("minemelody.button.down", () -> moveSelected(1))
+						.tooltip(Tooltip.create(Component.translatable("minemelody.tooltip.down"))),
+				button("minemelody.button.add_all", this::addAll)
+						.tooltip(Tooltip.create(Component.translatable("minemelody.tooltip.add_all"))),
+				button("minemelody.button.add_favorites", this::addFavorites)
+						.tooltip(Tooltip.create(Component.translatable("minemelody.tooltip.add_favorites"))),
 				button("minemelody.button.clear", this::clearPlaylist));
 
 		rowY += BUTTON_HEIGHT + BUTTON_GAP;
@@ -126,18 +132,23 @@ public final class PlaylistScreen extends Screen {
 		rowY += BUTTON_HEIGHT + BUTTON_GAP;
 		Button.Builder listen = button("minemelody.button.listen", this::listenToClicked)
 				.tooltip(Tooltip.create(Component.translatable("minemelody.tooltip.listen")));
-		listenButton = addButtonRow(rowY,
+		Button.Builder favorite = button("minemelody.button.favorite", this::toggleFavorite)
+				.tooltip(Tooltip.create(Component.translatable("minemelody.tooltip.favorite")));
+		List<Button> lastRow = addButtonRow(rowY,
 				listen,
+				favorite,
 				button("minemelody.button.skip", () -> player.skip(minecraft)),
-				Button.builder(CommonComponents.GUI_DONE, b -> onClose())).getFirst();
+				Button.builder(CommonComponents.GUI_DONE, b -> onClose()));
+		listenButton = lastRow.get(0);
+		favoriteButton = lastRow.get(1);
 
 		refreshLists(null, null);
-		updateListenButton();
+		updateContextButtons();
 	}
 
 	@Override
 	public void tick() {
-		updateListenButton();
+		updateContextButtons();
 
 		String playing = player.currentSound(minecraft).map(sound -> sound.track().id().toString()).orElse(null);
 		if (!Objects.equals(playing, lastPlayingId)) {
@@ -174,7 +185,7 @@ public final class PlaylistScreen extends Screen {
 
 	private void onRowClicked(TrackListWidget.Row row) {
 		clickedTrackId = row.id();
-		updateListenButton();
+		updateContextButtons();
 	}
 
 	private void listenToClicked() {
@@ -187,10 +198,35 @@ public final class PlaylistScreen extends Screen {
 		return player.catalog().get(clickedTrackId).filter(track -> player.unlocks().isAvailable(minecraft, track));
 	}
 
-	private void updateListenButton() {
+	/** Los botones que actúan sobre la canción clicada: se activan/cambian según cuál sea. */
+	private void updateContextButtons() {
 		if (listenButton != null) {
 			listenButton.active = clickableTrack().isPresent();
 		}
+		if (favoriteButton != null) {
+			favoriteButton.active = clickedTrackId != null;
+			boolean isFavorite = clickedTrackId != null && config.favorites.contains(clickedTrackId);
+			favoriteButton.setMessage(Component.translatable(
+					isFavorite ? "minemelody.button.unfavorite" : "minemelody.button.favorite"));
+		}
+	}
+
+	private void toggleFavorite() {
+		if (clickedTrackId == null) return;
+		if (!config.favorites.remove(clickedTrackId)) {
+			config.favorites.add(clickedTrackId);
+		}
+		changed(playlistList.selectedId());
+		updateContextButtons();
+	}
+
+	private void addFavorites() {
+		for (String id : config.favorites) {
+			if (!config.tracks.contains(id) && player.catalog().get(id).isPresent()) {
+				config.tracks.add(id);
+			}
+		}
+		changed(null);
 	}
 
 	private void addTrack(String id) {
@@ -262,7 +298,7 @@ public final class PlaylistScreen extends Screen {
 	private void refreshLists(String selectedCatalogId, String selectedPlaylistId) {
 		List<TrackListWidget.Row> catalogRows = new ArrayList<>();
 		for (Track track : player.catalog().all()) {
-			if (search.matches(track.group().label().getString() + " " + track.title().getString())) {
+			if (search.matches(searchableText(track))) {
 				catalogRows.add(catalogRow(track));
 			}
 		}
@@ -275,6 +311,19 @@ public final class PlaylistScreen extends Screen {
 		playlistList.setRows(playlistRows, selectedPlaylistId);
 	}
 
+	/** Lo que se busca: grupo + título, y la palabra "favorita" si lo es (así "fav" las filtra). */
+	private String searchableText(Track track) {
+		String text = track.group().label().getString() + " " + track.title().getString();
+		if (config.favorites.contains(track.id().toString())) {
+			text += " " + Component.translatable("minemelody.search.favorite_keyword").getString();
+		}
+		return text;
+	}
+
+	private String star(String id) {
+		return config.favorites.contains(id) ? "★ " : "";
+	}
+
 	private TrackListWidget.Row catalogRow(Track track) {
 		String id = track.id().toString();
 		boolean available = player.unlocks().isAvailable(minecraft, track);
@@ -282,6 +331,7 @@ public final class PlaylistScreen extends Screen {
 
 		StringBuilder text = new StringBuilder()
 				.append(inPlaylist ? "✔ " : "")
+				.append(star(id))
 				.append('[').append(track.group().label().getString()).append("] ")
 				.append(track.title().getString());
 		if (!available) {
@@ -302,7 +352,7 @@ public final class PlaylistScreen extends Screen {
 		String text = position + ". " + track.get().title().getString()
 				+ (available ? "" : "  " + Component.translatable("minemelody.locked").getString());
 		int color = !available ? DARK_GRAY : id.equals(lastPlayingId) ? GOLD : WHITE;
-		return playlistList.new Row(id, (id.equals(lastPlayingId) ? "♪ " : "") + text, color);
+		return playlistList.new Row(id, (id.equals(lastPlayingId) ? "♪ " : "") + star(id) + text, color);
 	}
 
 	private Component nowPlaying() {

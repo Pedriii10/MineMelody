@@ -8,9 +8,9 @@
 	"minemelody.screen.disabled": "Playlist desactivada: suena la música normal del juego",
 	"minemelody.button.add": "Añadir →",
 	"minemelody.button.remove": "← Quitar",
-	"minemelody.button.up": "▲ Subir",
-	"minemelody.button.down": "▼ Bajar",
-	"minemelody.button.add_all": "Añadir todas",
+	"minemelody.button.up": "▲",
+	"minemelody.button.down": "▼",
+	"minemelody.button.add_all": "+ Todas",
 	"minemelody.button.clear": "Vaciar",
 	"minemelody.button.enabled": "Playlist: %s",
 	"minemelody.button.mode": "Modo: %s",
@@ -45,5 +45,14 @@
 	"minemelody.position.bottom_right": "Abajo derecha",
 	"minemelody.position.bottom_left": "Abajo izquierda",
 	"minemelody.banner.header": "♪ Sonando ahora",
-	"minemelody.search.hint": "Buscar canción, artista o grupo..."
+	"minemelody.search.hint": "Buscar canción, artista o grupo...",
+	"minemelody.button.add_favorites": "+ ★ Favs",
+	"minemelody.button.favorite": "★ Favorito",
+	"minemelody.button.unfavorite": "☆ Quitar fav.",
+	"minemelody.tooltip.up": "Sube la canción seleccionada de tu playlist.",
+	"minemelody.tooltip.down": "Baja la canción seleccionada de tu playlist.",
+	"minemelody.tooltip.add_all": "Añade todas las canciones disponibles a tu playlist.",
+	"minemelody.tooltip.add_favorites": "Añade todas tus favoritas (★) a la playlist.",
+	"minemelody.tooltip.favorite": "Marca o desmarca como favorita la canción en la que hiciste clic. Escribe \"fav\" en el buscador para ver sólo tus favoritas.",
+	"minemelody.search.favorite_keyword": "favorita"
 }

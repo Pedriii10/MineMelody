@@ -36,6 +36,8 @@ public final class PlaylistConfig {
 	public boolean enabled = false;
 	/** Ids de los archivos de sonido, en orden. Ej: "minecraft:music/game/sweden". */
 	public List<String> tracks = new ArrayList<>();
+	/** Canciones marcadas con ★ (ids, igual que en tracks). */
+	public Set<String> favorites = new LinkedHashSet<>();
 	public PlaybackMode mode = PlaybackMode.IN_ORDER;
 	/** Silencio entre canciones, en segundos. */
 	public int gapSeconds = 3;
@@ -94,6 +96,7 @@ public final class PlaylistConfig {
 	/** Un JSON editado a mano puede traer nulls: los reemplazamos por valores sanos. */
 	private PlaylistConfig sanitized() {
 		if (tracks == null) tracks = new ArrayList<>();
+		if (favorites == null) favorites = new LinkedHashSet<>();
 		if (mode == null) mode = PlaybackMode.IN_ORDER;
 		if (unlockedDiscs == null) unlockedDiscs = new HashMap<>();
 		if (bannerPosition == null) bannerPosition = BannerPosition.TOP_LEFT;

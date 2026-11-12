@@ -8,9 +8,9 @@
 	"minemelody.screen.disabled": "Playlist off: regular game music plays",
 	"minemelody.button.add": "Add →",
 	"minemelody.button.remove": "← Remove",
-	"minemelody.button.up": "▲ Up",
-	"minemelody.button.down": "▼ Down",
-	"minemelody.button.add_all": "Add all",
+	"minemelody.button.up": "▲",
+	"minemelody.button.down": "▼",
+	"minemelody.button.add_all": "+ All",
 	"minemelody.button.clear": "Clear",
 	"minemelody.button.enabled": "Playlist: %s",
 	"minemelody.button.mode": "Mode: %s",
@@ -45,5 +45,14 @@
 	"minemelody.position.bottom_right": "Bottom right",
 	"minemelody.position.bottom_left": "Bottom left",
 	"minemelody.banner.header": "♪ Now playing",
-	"minemelody.search.hint": "Search track, artist or group..."
+	"minemelody.search.hint": "Search track, artist or group...",
+	"minemelody.button.add_favorites": "+ ★ Favs",
+	"minemelody.button.favorite": "★ Favorite",
+	"minemelody.button.unfavorite": "☆ Unfavorite",
+	"minemelody.tooltip.up": "Moves the selected playlist track up.",
+	"minemelody.tooltip.down": "Moves the selected playlist track down.",
+	"minemelody.tooltip.add_all": "Adds every available track to your playlist.",
+	"minemelody.tooltip.add_favorites": "Adds all your favorites (★) to the playlist.",
+	"minemelody.tooltip.favorite": "Marks or unmarks the clicked track as a favorite. Type \"fav\" in the search box to see only your favorites.",
+	"minemelody.search.favorite_keyword": "favorite"
 }
