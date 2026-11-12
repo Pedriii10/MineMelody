@@ -9,14 +9,15 @@ import com.google.gson.JsonObject;
  * cada versión sabe cómo pasar a la siguiente, y se aplican en orden.
  * <pre>
  *   v1 (MineMelody 0.1 - 0.2):  { "tracks": [...] }                        una sola playlist
- *   v2 (MineMelody 0.3+):       { "configVersion": 2, "library": {...} }   varias con nombre
+ *   v2 (MineMelody 0.3 - 0.4):  { "configVersion": 2, "library": {...} }   varias con nombre
+ *   v3 (MineMelody 0.5+):       "showBanner" (sí/no) pasa a "bannerMode" (OFF/ON_START/ALWAYS)
  * </pre>
  * Trabajamos sobre el JSON "crudo" (JsonObject) y no sobre la clase, porque la clase ya
  * tiene la forma NUEVA: no puede representar el formato viejo.
  */
 public final class ConfigMigration {
 
-	public static final int CURRENT_VERSION = 2;
+	public static final int CURRENT_VERSION = 3;
 
 	private ConfigMigration() {
 	}
@@ -27,10 +28,21 @@ public final class ConfigMigration {
 		if (version < 2) {
 			migrateV1ToV2(json, defaultPlaylistName);
 		}
-		// if (version < 3) { migrateV2ToV3(json); }  <- así se agregan las futuras
+		if (version < 3) {
+			migrateV2ToV3(json);
+		}
+		// if (version < 4) { migrateV3ToV4(json); }  <- así se agregan las futuras
 
 		json.addProperty("configVersion", CURRENT_VERSION);
 		return json;
+	}
+
+	/** "showBanner": true/false pasa a ser "bannerMode": ON_START/OFF (ahora hay un tercer modo, ALWAYS). */
+	private static void migrateV2ToV3(JsonObject json) {
+		JsonElement showBanner = json.remove("showBanner");
+		if (showBanner != null && showBanner.isJsonPrimitive()) {
+			json.addProperty("bannerMode", showBanner.getAsBoolean() ? "ON_START" : "OFF");
+		}
 	}
 
 	/** La lista "tracks" suelta pasa a ser la primera playlist de la biblioteca. */

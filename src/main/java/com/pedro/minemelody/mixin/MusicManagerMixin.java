@@ -1,6 +1,7 @@
 package com.pedro.minemelody.mixin;
 
 import com.pedro.minemelody.MineMelodyClient;
+import com.pedro.minemelody.core.BannerMode;
 import com.pedro.minemelody.playback.PlaylistPlayer;
 import com.pedro.minemelody.playback.PlaylistSoundInstance;
 import net.minecraft.client.Minecraft;
@@ -50,7 +51,7 @@ public abstract class MusicManagerMixin {
 		currentMusic = next;
 		SoundEngine.PlayResult result = minecraft.getSoundManager().play(next);
 		if (result == SoundEngine.PlayResult.STARTED) {
-			if (MineMelodyClient.config().showBanner) {
+			if (MineMelodyClient.config().bannerMode != BannerMode.OFF) {
 				MineMelodyClient.banner().show(next.track()); // nuestro banner reemplaza al aviso vanilla
 			} else {
 				minecraft.gui.toastManager().showNowPlayingToast();

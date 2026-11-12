@@ -36,10 +36,8 @@
 	"key.minemelody.open": "Abrir playlist",
 	"key.minemelody.skip": "Siguiente canción",
 	"minemelody.button.listen": "▶ Escuchar",
-	"minemelody.button.banner": "Banner: %s",
 	"minemelody.tooltip.listen": "Haz clic en una canción de cualquiera de las dos listas y pulsa aquí para escucharla ya. Funciona aunque la playlist esté desactivada. Los discos bloqueados no se pueden escuchar.",
-	"minemelody.tooltip.banner": "Muestra un aviso con el título y el artista en una esquina cuando empieza una canción.",
-	"minemelody.tooltip.position": "Esquina de la pantalla donde aparece el banner.",
+	"minemelody.tooltip.banner": "Aviso con la canción que suena: cuándo se ve, en qué esquina y de qué tamaño (con vista previa).",
 	"minemelody.position.top_left": "Arriba izquierda",
 	"minemelody.position.top_right": "Arriba derecha",
 	"minemelody.position.bottom_right": "Abajo derecha",
@@ -89,5 +87,15 @@
 	"key.minemelody.volume_down": "Bajar volumen de la música",
 	"minemelody.overlay.paused": "⏸ Música en pausa",
 	"minemelody.overlay.resumed": "▶ Música reanudada",
-	"minemelody.overlay.volume": "♪ Volumen de la música: %s%%"
+	"minemelody.overlay.volume": "♪ Volumen de la música: %s%%",
+	"minemelody.button.banner_settings": "Banner...",
+	"minemelody.banner_settings.title": "Banner de \"Sonando ahora\"",
+	"minemelody.banner_settings.preview_hint": "La vista previa se ve en la esquina elegida",
+	"minemelody.button.banner_mode": "Mostrar: %s",
+	"minemelody.button.banner_position": "Esquina: %s",
+	"minemelody.button.banner_size": "Tamaño: %s%%",
+	"minemelody.banner_mode.off": "Nunca",
+	"minemelody.banner_mode.on_start": "Al empezar cada canción",
+	"minemelody.banner_mode.always": "Siempre (con progreso)",
+	"minemelody.tooltip.banner_mode": "\"Al empezar\": unos segundos cada vez que cambia la canción. \"Siempre\": fijo en pantalla mientras suene música, con la barra de progreso."
 }

@@ -36,10 +36,8 @@
 	"key.minemelody.open": "Open playlist",
 	"key.minemelody.skip": "Next track",
 	"minemelody.button.listen": "▶ Listen",
-	"minemelody.button.banner": "Banner: %s",
 	"minemelody.tooltip.listen": "Click a track in either list and press here to play it right away. Works even with the playlist off. Locked discs can't be previewed.",
-	"minemelody.tooltip.banner": "Shows the title and artist in a corner when a track starts.",
-	"minemelody.tooltip.position": "Screen corner where the banner appears.",
+	"minemelody.tooltip.banner": "Now playing banner: when it shows, which corner and how big (with live preview).",
 	"minemelody.position.top_left": "Top left",
 	"minemelody.position.top_right": "Top right",
 	"minemelody.position.bottom_right": "Bottom right",
@@ -89,5 +87,15 @@
 	"key.minemelody.volume_down": "Music volume down",
 	"minemelody.overlay.paused": "⏸ Music paused",
 	"minemelody.overlay.resumed": "▶ Music resumed",
-	"minemelody.overlay.volume": "♪ Music volume: %s%%"
+	"minemelody.overlay.volume": "♪ Music volume: %s%%",
+	"minemelody.button.banner_settings": "Banner...",
+	"minemelody.banner_settings.title": "\"Now playing\" banner",
+	"minemelody.banner_settings.preview_hint": "The preview shows in the chosen corner",
+	"minemelody.button.banner_mode": "Show: %s",
+	"minemelody.button.banner_position": "Corner: %s",
+	"minemelody.button.banner_size": "Size: %s%%",
+	"minemelody.banner_mode.off": "Never",
+	"minemelody.banner_mode.on_start": "When a track starts",
+	"minemelody.banner_mode.always": "Always (with progress)",
+	"minemelody.tooltip.banner_mode": "\"When a track starts\": a few seconds on every new track. \"Always\": stays on screen while music plays, with the progress bar."
 }

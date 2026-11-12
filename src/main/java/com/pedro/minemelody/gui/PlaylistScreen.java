@@ -38,7 +38,7 @@ import java.util.function.Supplier;
  *  │ ...                   │ ...                 │
  *  ├────────────────────────────────────────────┤
  *  │ Añadir Quitar ▲ ▼ +Todas +★Favs Vaciar      │
- *  │ Playlist  Modo  Pausa  Discos  Banner  Esq. │
+ *  │ Playlist  Modo  Pausa  Discos  Banner...    │
  *  │ ▶ Escuchar ★ Fav ⏭ Sig. Exportar Importar Listo │
  *  └────────────────────────────────────────────┘
  * </pre>
@@ -145,10 +145,8 @@ public final class PlaylistScreen extends Screen {
 						"minemelody.tooltip.gap", this::cycleGap),
 				toggle(() -> Component.translatable("minemelody.button.discs", onOff(config.discsRequireUnlock)),
 						"minemelody.tooltip.discs", () -> config.discsRequireUnlock = !config.discsRequireUnlock),
-				toggle(() -> Component.translatable("minemelody.button.banner", onOff(config.showBanner)),
-						"minemelody.tooltip.banner", () -> config.showBanner = !config.showBanner),
-				toggle(() -> Component.translatable(config.bannerPosition.translationKey()),
-						"minemelody.tooltip.position", () -> config.bannerPosition = config.bannerPosition.cycle()));
+				button("minemelody.button.banner_settings", () -> minecraft.gui.setScreen(new BannerSettingsScreen(this)))
+						.tooltip(Tooltip.create(Component.translatable("minemelody.tooltip.banner"))));
 
 		rowY += BUTTON_HEIGHT + BUTTON_GAP;
 		Button.Builder listen = button("minemelody.button.listen", this::listenToClicked)

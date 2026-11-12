@@ -6,7 +6,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.pedro.minemelody.MineMelodyClient;
+import com.pedro.minemelody.core.BannerMode;
 import com.pedro.minemelody.core.BannerPosition;
+import com.pedro.minemelody.core.BannerScale;
 import com.pedro.minemelody.core.PlaybackMode;
 import com.pedro.minemelody.core.PlaylistLibrary;
 import net.fabricmc.loader.api.FabricLoader;
@@ -50,8 +52,10 @@ public final class PlaylistConfig {
 	public int gapSeconds = 3;
 	/** En survival, los discos sólo suenan si los conseguiste en ese mundo. */
 	public boolean discsRequireUnlock = true;
-	/** Banner de "Sonando ahora" en una esquina cuando empieza una canción. */
-	public boolean showBanner = true;
+	/** Banner de "Sonando ahora": apagado, al empezar cada canción o siempre. */
+	public BannerMode bannerMode = BannerMode.ON_START;
+	/** Tamaño del banner: 1.0 = normal, 0.5 = la mitad, 2.0 = el doble. */
+	public double bannerScale = 1.0;
 	public BannerPosition bannerPosition = BannerPosition.TOP_LEFT;
 	/** Mundo/servidor -> eventos de disco desbloqueados (ej: "minecraft:music_disc.cat"). */
 	public Map<String, Set<String>> unlockedDiscs = new HashMap<>();
@@ -132,6 +136,8 @@ public final class PlaylistConfig {
 		if (mode == null) mode = PlaybackMode.IN_ORDER;
 		if (unlockedDiscs == null) unlockedDiscs = new HashMap<>();
 		if (bannerPosition == null) bannerPosition = BannerPosition.TOP_LEFT;
+		if (bannerMode == null) bannerMode = BannerMode.ON_START;
+		bannerScale = BannerScale.sanitize(bannerScale);
 		gapSeconds = Math.clamp(gapSeconds, 0, 600);
 		return this;
 	}
