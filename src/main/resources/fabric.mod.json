@@ -1,0 +1,27 @@
+{
+	"schemaVersion": 1,
+	"id": "musicplaylist",
+	"version": "${version}",
+	"name": "Music Playlist",
+	"description": "Armá tu propia playlist con la música de Minecraft. En survival, los discos se desbloquean consiguiéndolos.",
+	"authors": [
+		"Pedro"
+	],
+	"license": "MIT",
+	"icon": "assets/musicplaylist/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"com.pedro.musicplaylist.MusicPlaylistClient"
+		]
+	},
+	"mixins": [
+		"musicplaylist.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.20.0",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
