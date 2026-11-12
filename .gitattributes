@@ -1,6 +1,9 @@
 #
 # https://help.github.com/articles/dealing-with-line-endings/
 #
+# Todo el código en LF (estándar en Java/Gradle), aunque trabajemos en Windows.
+* text=auto eol=lf
+
 # Linux start script should use lf
 /gradlew        text eol=lf
 
