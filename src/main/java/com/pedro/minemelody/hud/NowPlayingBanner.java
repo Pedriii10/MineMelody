@@ -5,6 +5,7 @@ import com.pedro.minemelody.config.PlaylistConfig;
 import com.pedro.minemelody.core.BannerPosition;
 import com.pedro.minemelody.core.SlideAnimation;
 import com.pedro.minemelody.core.SongTitle;
+import com.pedro.minemelody.core.TimeFormat;
 import com.pedro.minemelody.track.Track;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.minecraft.client.DeltaTracker;
@@ -61,7 +62,11 @@ public final class NowPlayingBanner implements HudElement {
 	public void show(Track track) {
 		if (!config.showBanner || Minecraft.getInstance().level == null) return;
 		try {
-			this.song = SongTitle.parse(track.title().getString(), track.group().label().getString());
+			SongTitle parsed = SongTitle.parse(track.title().getString(), track.group().label().getString());
+			var seconds = MineMelodyClient.durations().get(Minecraft.getInstance(), track);
+			this.song = seconds.isPresent()
+					? new SongTitle(parsed.artist() + "  ·  " + TimeFormat.minutesSeconds(seconds.getAsDouble()), parsed.title())
+					: parsed;
 			this.icon = null; // se crea al dibujar
 			this.shownAt = Util.getMillis();
 			this.track = track;

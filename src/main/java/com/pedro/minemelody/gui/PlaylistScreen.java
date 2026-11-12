@@ -6,6 +6,7 @@ import com.pedro.minemelody.core.Playlist;
 import com.pedro.minemelody.core.PlaylistCodec;
 import com.pedro.minemelody.core.PlaylistLibrary;
 import com.pedro.minemelody.core.SearchQuery;
+import com.pedro.minemelody.core.TimeFormat;
 import com.pedro.minemelody.playback.PlaylistPlayer;
 import com.pedro.minemelody.playback.PlaylistSoundInstance;
 import com.pedro.minemelody.track.Track;
@@ -58,10 +59,13 @@ public final class PlaylistScreen extends Screen {
 	private static final int GREEN = 0xFF7CFC7C;
 	private static final int RED = 0xFFFF6B6B;
 	private static final int GOLD = 0xFFFFD166;
+	private static final int PROGRESS_BACKGROUND = 0xFF3A3F47;
 
 	private static final int MARGIN = 10;
 	private static final int TITLE_Y = 6;
-	private static final int NOW_PLAYING_Y = 18;
+	private static final int NOW_PLAYING_Y = 16;
+	private static final int PROGRESS_Y = 26;
+	private static final int PROGRESS_HALF_WIDTH = 90;
 	private static final int SELECTOR_Y = 30;
 	private static final int LIST_TOP = 66;
 	private static final int BUTTON_HEIGHT = 20;
@@ -87,6 +91,8 @@ public final class PlaylistScreen extends Screen {
 	private String clickedTrackId;
 	/** Para refrescar las listas (y pintar de dorado) cuando cambia la canción que suena. */
 	private String lastPlayingId;
+	/** Para refrescar las filas cuando llegan duraciones nuevas del hilo de fondo. */
+	private int lastDurationsVersion = -1;
 
 	public PlaylistScreen(Screen parent) {
 		super(Component.translatable("minemelody.screen.title"));
@@ -170,8 +176,10 @@ public final class PlaylistScreen extends Screen {
 		updateContextButtons();
 
 		String playing = player.currentSound(minecraft).map(sound -> sound.track().id().toString()).orElse(null);
-		if (!Objects.equals(playing, lastPlayingId)) {
+		int durationsVersion = MineMelodyClient.durations().version();
+		if (!Objects.equals(playing, lastPlayingId) || durationsVersion != lastDurationsVersion) {
 			lastPlayingId = playing;
+			lastDurationsVersion = durationsVersion;
 			refreshLists(catalogList.selectedId(), playlistList.selectedId());
 		}
 	}
@@ -182,6 +190,7 @@ public final class PlaylistScreen extends Screen {
 
 		graphics.centeredText(font, title, width / 2, TITLE_Y, WHITE);
 		graphics.centeredText(font, nowPlaying(), width / 2, NOW_PLAYING_Y, GREEN);
+		extractProgressBar(graphics);
 		graphics.text(font, Component.translatable("minemelody.screen.catalog", catalogList.size()),
 				catalogList.getX(), LIST_TOP - 11, GRAY);
 		graphics.text(font, Component.translatable("minemelody.screen.playlist", playlistList.size()),
@@ -498,7 +507,7 @@ public final class PlaylistScreen extends Screen {
 		}
 
 		int color = !available ? DARK_GRAY : id.equals(lastPlayingId) ? GOLD : inPlaylist ? GREEN : WHITE;
-		return catalogList.new Row(id, text.toString(), color);
+		return catalogList.new Row(id, text.toString(), duration(track), color);
 	}
 
 	private TrackListWidget.Row playlistRow(int position, String id) {
@@ -511,16 +520,43 @@ public final class PlaylistScreen extends Screen {
 		String text = position + ". " + track.get().title().getString()
 				+ (available ? "" : "  " + Component.translatable("minemelody.locked").getString());
 		int color = !available ? DARK_GRAY : id.equals(lastPlayingId) ? GOLD : WHITE;
-		return playlistList.new Row(id, (id.equals(lastPlayingId) ? "♪ " : "") + star(id) + text, color);
+		return playlistList.new Row(id, (id.equals(lastPlayingId) ? "♪ " : "") + star(id) + text, duration(track.get()), color);
+	}
+
+	/** "3:49" o null si todavía no la sabemos (se está leyendo en segundo plano). */
+	private String duration(Track track) {
+		var seconds = MineMelodyClient.durations().get(minecraft, track);
+		return seconds.isPresent() ? TimeFormat.minutesSeconds(seconds.getAsDouble()) : null;
+	}
+
+	/** "1:23 / 3:49", o sólo "1:23" si la duración todavía no llegó. */
+	private String elapsedText(Track track) {
+		String elapsed = TimeFormat.minutesSeconds(MineMelodyClient.clock().elapsedSeconds());
+		String total = duration(track);
+		return total == null ? elapsed : elapsed + " / " + total;
+	}
+
+	private void extractProgressBar(GuiGraphicsExtractor graphics) {
+		Optional<PlaylistSoundInstance> current = player.currentSound(minecraft);
+		if (current.isEmpty()) return;
+		var total = MineMelodyClient.durations().get(minecraft, current.get().track());
+		if (total.isEmpty()) return;
+
+		float progress = TimeFormat.progress(MineMelodyClient.clock().elapsedSeconds(), total.getAsDouble());
+		int left = width / 2 - PROGRESS_HALF_WIDTH;
+		int right = width / 2 + PROGRESS_HALF_WIDTH;
+		graphics.fill(left, PROGRESS_Y, right, PROGRESS_Y + 2, PROGRESS_BACKGROUND);
+		graphics.fill(left, PROGRESS_Y, left + Math.round((right - left) * progress), PROGRESS_Y + 2, GREEN);
 	}
 
 	private Component nowPlaying() {
 		Optional<PlaylistSoundInstance> current = player.currentSound(minecraft);
 		if (current.isPresent()) {
 			Playlist from = current.get().playlist();
-			return from == null
+			Component line = from == null
 					? Component.translatable("minemelody.screen.previewing", current.get().track().title())
 					: Component.translatable("minemelody.screen.now_playing_from", current.get().track().title(), from.name());
+			return Component.empty().append(line).append("   " + elapsedText(current.get().track()));
 		}
 		return config.enabled
 				? Component.translatable("minemelody.screen.waiting")

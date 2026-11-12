@@ -20,6 +20,7 @@ import java.util.function.Consumer;
 public final class TrackListWidget extends ObjectSelectionList<TrackListWidget.Row> {
 
 	private static final int ROW_HEIGHT = 14;
+	private static final int RIGHT_TEXT_COLOR = 0xFF8A8F98;
 
 	private final Consumer<Row> onClick;
 	private final Consumer<Row> onDoubleClick;
@@ -70,11 +71,18 @@ public final class TrackListWidget extends ObjectSelectionList<TrackListWidget.R
 
 		private final String id;
 		private final String text;
+		/** Texto alineado a la derecha (la duración), o null. */
+		private final String rightText;
 		private final int color;
 
 		public Row(String id, String text, int color) {
+			this(id, text, null, color);
+		}
+
+		public Row(String id, String text, String rightText, int color) {
 			this.id = id;
 			this.text = text;
+			this.rightText = rightText;
 			this.color = color;
 		}
 
@@ -85,11 +93,18 @@ public final class TrackListWidget extends ObjectSelectionList<TrackListWidget.R
 		@Override
 		public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float partialTick) {
 			Font font = minecraft.font;
-			String visible = text;
-			if (font.width(visible) > getContentWidth()) {
-				visible = font.plainSubstrByWidth(visible, getContentWidth() - font.width("...")) + "...";
+			int textY = getContentYMiddle() - font.lineHeight / 2;
+			int available = getContentWidth();
+			if (rightText != null) {
+				int rightWidth = font.width(rightText);
+				graphics.text(font, rightText, getContentRight() - rightWidth, textY, RIGHT_TEXT_COLOR);
+				available -= rightWidth + 6;
 			}
-			graphics.text(font, visible, getContentX(), getContentYMiddle() - font.lineHeight / 2, color);
+			String visible = text;
+			if (font.width(visible) > available) {
+				visible = font.plainSubstrByWidth(visible, available - font.width("...")) + "...";
+			}
+			graphics.text(font, visible, getContentX(), textY, color);
 		}
 
 		@Override

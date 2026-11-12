@@ -5,6 +5,8 @@ import com.pedro.minemelody.gui.PlaylistScreen;
 import com.pedro.minemelody.hud.NowPlayingBanner;
 import com.pedro.minemelody.playback.MusicControls;
 import com.pedro.minemelody.playback.PlaylistPlayer;
+import com.pedro.minemelody.playback.TrackClock;
+import com.pedro.minemelody.playback.TrackDurations;
 import com.pedro.minemelody.track.TrackCatalog;
 import com.pedro.minemelody.unlock.DiscUnlockTracker;
 import com.mojang.blaze3d.platform.InputConstants;
@@ -31,6 +33,8 @@ public final class MineMelodyClient implements ClientModInitializer {
 	private static PlaylistPlayer player;
 	private static NowPlayingBanner banner;
 	private static final MusicControls controls = new MusicControls();
+	private static final TrackDurations durations = new TrackDurations();
+	private static final TrackClock clock = new TrackClock();
 
 	private static final KeyMapping.Category KEY_CATEGORY =
 			KeyMapping.Category.register(Identifier.fromNamespaceAndPath(MOD_ID, "main"));
@@ -87,6 +91,7 @@ public final class MineMelodyClient implements ClientModInitializer {
 			controls.changeVolume(minecraft, -1);
 		}
 		controls.tick(minecraft);
+		clock.tick(minecraft, controls.isPaused());
 	}
 
 	/**
@@ -110,6 +115,14 @@ public final class MineMelodyClient implements ClientModInitializer {
 
 	public static NowPlayingBanner banner() {
 		return banner;
+	}
+
+	public static TrackDurations durations() {
+		return durations;
+	}
+
+	public static TrackClock clock() {
+		return clock;
 	}
 
 	private static DiscUnlockTracker unlocks() {
