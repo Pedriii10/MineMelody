@@ -5,6 +5,8 @@
 	"client": [
 		"MusicManagerAccessor",
 		"MusicManagerMixin",
+		"SoundEngineAccessor",
+		"SoundManagerAccessor",
 		"SoundOptionsScreenMixin",
 		"WeighedSoundEventsAccessor"
 	],

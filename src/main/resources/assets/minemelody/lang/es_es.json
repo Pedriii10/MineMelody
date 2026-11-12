@@ -83,5 +83,11 @@
 	"minemelody.screen.now_playing_from": "Sonando: %s  ·  de «%s»",
 	"minemelody.screen.previewing": "Escuchando: %s",
 	"minemelody.overlay.playlist": "♪ Playlist: %s",
-	"key.minemelody.next_playlist": "Siguiente playlist"
+	"key.minemelody.next_playlist": "Siguiente playlist",
+	"key.minemelody.pause": "Pausar / reanudar música",
+	"key.minemelody.volume_up": "Subir volumen de la música",
+	"key.minemelody.volume_down": "Bajar volumen de la música",
+	"minemelody.overlay.paused": "⏸ Música en pausa",
+	"minemelody.overlay.resumed": "▶ Música reanudada",
+	"minemelody.overlay.volume": "♪ Volumen de la música: %s%%"
 }

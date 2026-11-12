@@ -3,6 +3,7 @@ package com.pedro.minemelody;
 import com.pedro.minemelody.config.PlaylistConfig;
 import com.pedro.minemelody.gui.PlaylistScreen;
 import com.pedro.minemelody.hud.NowPlayingBanner;
+import com.pedro.minemelody.playback.MusicControls;
 import com.pedro.minemelody.playback.PlaylistPlayer;
 import com.pedro.minemelody.track.TrackCatalog;
 import com.pedro.minemelody.unlock.DiscUnlockTracker;
@@ -29,6 +30,7 @@ public final class MineMelodyClient implements ClientModInitializer {
 	private static PlaylistConfig config;
 	private static PlaylistPlayer player;
 	private static NowPlayingBanner banner;
+	private static final MusicControls controls = new MusicControls();
 
 	private static final KeyMapping.Category KEY_CATEGORY =
 			KeyMapping.Category.register(Identifier.fromNamespaceAndPath(MOD_ID, "main"));
@@ -36,6 +38,9 @@ public final class MineMelodyClient implements ClientModInitializer {
 	private KeyMapping openScreenKey;
 	private KeyMapping skipKey;
 	private KeyMapping nextPlaylistKey;
+	private KeyMapping pauseKey;
+	private KeyMapping volumeUpKey;
+	private KeyMapping volumeDownKey;
 
 	@Override
 	public void onInitializeClient() {
@@ -47,8 +52,10 @@ public final class MineMelodyClient implements ClientModInitializer {
 				new KeyMapping("key.minemelody.open", InputConstants.KEY_M, KEY_CATEGORY));
 		skipKey = KeyMappingHelper.registerKeyMapping(
 				new KeyMapping("key.minemelody.skip", InputConstants.UNKNOWN.getValue(), KEY_CATEGORY));
-		nextPlaylistKey = KeyMappingHelper.registerKeyMapping(
-				new KeyMapping("key.minemelody.next_playlist", InputConstants.UNKNOWN.getValue(), KEY_CATEGORY));
+		nextPlaylistKey = registerUnbound("key.minemelody.next_playlist");
+		pauseKey = registerUnbound("key.minemelody.pause");
+		volumeUpKey = registerUnbound("key.minemelody.volume_up");
+		volumeDownKey = registerUnbound("key.minemelody.volume_down");
 
 		banner = new NowPlayingBanner(config);
 		HudElementRegistry.addLast(Identifier.fromNamespaceAndPath(MOD_ID, "now_playing"), banner);
@@ -70,6 +77,25 @@ public final class MineMelodyClient implements ClientModInitializer {
 		while (nextPlaylistKey.consumeClick()) {
 			player.cyclePlaylist(minecraft, 1);
 		}
+		while (pauseKey.consumeClick()) {
+			controls.togglePause(minecraft);
+		}
+		while (volumeUpKey.consumeClick()) {
+			controls.changeVolume(minecraft, 1);
+		}
+		while (volumeDownKey.consumeClick()) {
+			controls.changeVolume(minecraft, -1);
+		}
+		controls.tick(minecraft);
+	}
+
+	/**
+	 * Teclas SIN asignar por defecto: así no pisamos ninguna tecla de otro mod.
+	 * Cada uno las asigna en Opciones -> Controles -> MineMelody.
+	 */
+	private static KeyMapping registerUnbound(String translationKey) {
+		return KeyMappingHelper.registerKeyMapping(
+				new KeyMapping(translationKey, InputConstants.UNKNOWN.getValue(), KEY_CATEGORY));
 	}
 
 	// Acceso global simple. Para un mod de este tamaño alcanza; en algo más grande

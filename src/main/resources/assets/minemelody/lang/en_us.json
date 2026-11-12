@@ -83,5 +83,11 @@
 	"minemelody.screen.now_playing_from": "Now playing: %s  ·  from \"%s\"",
 	"minemelody.screen.previewing": "Previewing: %s",
 	"minemelody.overlay.playlist": "♪ Playlist: %s",
-	"key.minemelody.next_playlist": "Next playlist"
+	"key.minemelody.next_playlist": "Next playlist",
+	"key.minemelody.pause": "Pause / resume music",
+	"key.minemelody.volume_up": "Music volume up",
+	"key.minemelody.volume_down": "Music volume down",
+	"minemelody.overlay.paused": "⏸ Music paused",
+	"minemelody.overlay.resumed": "▶ Music resumed",
+	"minemelody.overlay.volume": "♪ Music volume: %s%%"
 }
