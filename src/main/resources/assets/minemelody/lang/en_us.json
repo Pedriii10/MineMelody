@@ -54,5 +54,16 @@
 	"minemelody.tooltip.add_all": "Adds every available track to your playlist.",
 	"minemelody.tooltip.add_favorites": "Adds all your favorites (★) to the playlist.",
 	"minemelody.tooltip.favorite": "Marks or unmarks the clicked track as a favorite. Type \"fav\" in the search box to see only your favorites.",
-	"minemelody.search.favorite_keyword": "favorite"
+	"minemelody.search.favorite_keyword": "favorite",
+	"minemelody.button.export": "Export",
+	"minemelody.button.import": "Import",
+	"minemelody.tooltip.export": "Copies your playlist to the clipboard as text, to paste it on Discord or anywhere.",
+	"minemelody.tooltip.import": "Loads a playlist copied with \"Export\" (yours or a friend's). Replaces the current one.",
+	"minemelody.toast.exported": "Playlist copied to clipboard (%s tracks)",
+	"minemelody.toast.export_empty": "Your playlist is empty: nothing to export",
+	"minemelody.toast.import_invalid": "The clipboard doesn't contain a MineMelody playlist",
+	"minemelody.toast.imported": "Playlist imported: %s tracks",
+	"minemelody.toast.imported_missing": "Playlist imported: %s tracks (%s don't exist in your game)",
+	"minemelody.import.confirm_title": "Replace your playlist?",
+	"minemelody.import.confirm_message": "Your current playlist (%s tracks) will be replaced by the imported one (%s tracks)."
 }

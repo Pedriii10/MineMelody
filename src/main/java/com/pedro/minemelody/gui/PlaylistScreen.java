@@ -2,6 +2,7 @@ package com.pedro.minemelody.gui;
 
 import com.pedro.minemelody.MineMelodyClient;
 import com.pedro.minemelody.config.PlaylistConfig;
+import com.pedro.minemelody.core.PlaylistCodec;
 import com.pedro.minemelody.core.SearchQuery;
 import com.pedro.minemelody.playback.PlaylistPlayer;
 import com.pedro.minemelody.playback.PlaylistSoundInstance;
@@ -10,6 +11,8 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.components.toasts.SystemToast;
+import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.CommonComponents;
@@ -32,7 +35,7 @@ import java.util.function.Supplier;
  *  ├────────────────────────────────────────────┤
  *  │ Añadir Quitar ▲ ▼ +Todas +★Favs Vaciar      │
  *  │ Playlist  Modo  Pausa  Discos  Banner  Esq. │
- *  │ ▶ Escuchar  ★ Favorito  ⏭ Siguiente  Listo  │
+ *  │ ▶ Escuchar ★ Fav ⏭ Sig. Exportar Importar Listo │
  *  └────────────────────────────────────────────┘
  * </pre>
  * Cada cambio se guarda al instante: si el juego crashea, no perdés tu playlist.
@@ -40,6 +43,7 @@ import java.util.function.Supplier;
 public final class PlaylistScreen extends Screen {
 
 	private static final int[] GAP_OPTIONS = {0, 1, 3, 5, 10, 30, 60};
+	private static final SystemToast.SystemToastId TOAST_ID = new SystemToast.SystemToastId();
 
 	private static final int WHITE = 0xFFFFFFFF;
 	private static final int GRAY = 0xFFA0A0A0;
@@ -138,6 +142,10 @@ public final class PlaylistScreen extends Screen {
 				listen,
 				favorite,
 				button("minemelody.button.skip", () -> player.skip(minecraft)),
+				button("minemelody.button.export", this::exportPlaylist)
+						.tooltip(Tooltip.create(Component.translatable("minemelody.tooltip.export"))),
+				button("minemelody.button.import", this::importPlaylist)
+						.tooltip(Tooltip.create(Component.translatable("minemelody.tooltip.import"))),
 				Button.builder(CommonComponents.GUI_DONE, b -> onClose()));
 		listenButton = lastRow.get(0);
 		favoriteButton = lastRow.get(1);
@@ -218,6 +226,54 @@ public final class PlaylistScreen extends Screen {
 		}
 		changed(playlistList.selectedId());
 		updateContextButtons();
+	}
+
+	// ---------------------------------------------------------------- compartir
+
+	private void exportPlaylist() {
+		if (config.tracks.isEmpty()) {
+			toast("minemelody.toast.export_empty");
+			return;
+		}
+		minecraft.keyboardHandler.setClipboard(PlaylistCodec.encode(config.tracks));
+		toast("minemelody.toast.exported", config.tracks.size());
+	}
+
+	/**
+	 * Importar REEMPLAZA la playlist, así que primero preguntamos. Perder una playlist armada
+	 * con cariño por un clic sin querer es justo el tipo de cosa que hace odiar un mod.
+	 */
+	private void importPlaylist() {
+		var imported = PlaylistCodec.decode(minecraft.keyboardHandler.getClipboard());
+		if (imported.isEmpty()) {
+			toast("minemelody.toast.import_invalid");
+			return;
+		}
+		List<String> tracks = imported.get();
+		if (config.tracks.isEmpty()) {
+			applyImport(tracks);
+			return;
+		}
+		minecraft.gui.setScreen(new ConfirmScreen(confirmed -> {
+			if (confirmed) applyImport(tracks);
+			minecraft.gui.setScreen(this);
+		},
+				Component.translatable("minemelody.import.confirm_title"),
+				Component.translatable("minemelody.import.confirm_message", config.tracks.size(), tracks.size())));
+	}
+
+	private void applyImport(List<String> tracks) {
+		config.tracks.clear();
+		config.tracks.addAll(tracks);
+		player.resetQueue();
+		changed(null);
+		long missing = tracks.stream().filter(id -> player.catalog().get(id).isEmpty()).count();
+		toast(missing == 0 ? "minemelody.toast.imported" : "minemelody.toast.imported_missing", tracks.size(), missing);
+	}
+
+	private void toast(String messageKey, Object... args) {
+		SystemToast.addOrUpdate(minecraft.gui.toastManager(), TOAST_ID,
+				Component.translatable("minemelody.screen.title"), Component.translatable(messageKey, args));
 	}
 
 	private void addFavorites() {
