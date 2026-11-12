@@ -81,8 +81,18 @@ public abstract class MusicManagerMixin {
 	 */
 	@Inject(method = "tick", at = @At("HEAD"))
 	private void minemelody$controlGaps(CallbackInfo ci) {
-		if (currentMusic == null) return;
 		PlaylistPlayer player = MineMelodyClient.player();
+
+		if (currentMusic == null) {
+			// No suena nada. Vanilla a veces para la música POR SU CUENTA y deja una espera de
+			// minutos: por ejemplo al cambiar de dimensión (el servidor manda un paquete de
+			// "respawn" y ClientPacketListener.handleRespawn llama a stopPlaying()), o al morir.
+			// Con la playlist activa, nunca esperamos más que la pausa configurada.
+			if (nextSongDelay > player.gapTicks() && player.shouldHandle(minecraft, minecraft.getSituationalMusic())) {
+				nextSongDelay = player.gapTicks();
+			}
+			return;
+		}
 
 		if (currentMusic instanceof PlaylistSoundInstance ours) {
 			boolean finished = !minecraft.getSoundManager().isActive(currentMusic);
