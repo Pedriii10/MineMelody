@@ -6,6 +6,9 @@ Armá tu propia playlist con la música de Minecraft. Se acabaron los 20 minutos
 - Modos: en orden, aleatorio (sin repetir hasta pasar por todas) y repetir una.
 - Pausa configurable entre canciones (0 s a 60 s).
 - **Discos en survival**: sólo suenan si los tuviste en el inventario en ese mundo. Se puede desactivar.
+- Buscador (sin importar mayúsculas ni tildes) y favoritos ★.
+- Exportar/importar la playlist como texto para compartirla.
+- Banner de "Sonando ahora" en la esquina que elijas, y botón para pre-escuchar cualquier canción.
 - Tecla opcional "Siguiente canción" (sin asignar por defecto: Opciones → Controles).
 - 100% cliente: funciona aunque el servidor no tenga el mod.
 
