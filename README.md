@@ -4,6 +4,7 @@
 
 
 
+
 **Crea tu propia playlist con la música de Minecraft.** Se acabaron los 20 minutos de silencio entre canciones.
 
 - **Botón en Opciones → Música y sonidos → "Playlist de música..."**, o tecla **M** dentro del juego.
