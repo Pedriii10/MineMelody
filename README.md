@@ -1,6 +1,6 @@
 # MineMelody (Fabric · Minecraft 26.3)
 
-<img width="1250" height="1250" alt="Imagen de ChatGPT 13 nov 2026, 08_24_19" src="https://github.com/user-attachments/assets/1142936d-0ff6-4875-9544-534602cc0c63" />
+<img width="800" height="800" alt="MineMelody-Logo" src="https://github.com/user-attachments/assets/1142936d-0ff6-4875-9544-534602cc0c63" />
 
 
 
