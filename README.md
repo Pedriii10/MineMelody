@@ -1,10 +1,10 @@
 # MineMelody (Fabric · Minecraft 26.3)
 
-<img width="900" height="900" alt="MineMelody-Logo" src="https://github.com/user-attachments/assets/1142936d-0ff6-4875-9544-534602cc0c63" />
+<img width="1250" height="1250" alt="MineMelody-Logo" src="https://github.com/user-attachments/assets/1142936d-0ff6-4875-9544-534602cc0c63" />
 
 
 
-Crea tu propia playlist con la música de Minecraft. Se acabaron los 20 minutos de silencio entre canciones.
+**Crea tu propia playlist con la música de Minecraft.** Se acabaron los 20 minutos de silencio entre canciones.
 
 - **Botón en Opciones → Música y sonidos → "Playlist de música..."**, o tecla **M** dentro del juego.
 - Modos: en orden, aleatorio (sin repetir hasta pasar por todas) y repetir una.
