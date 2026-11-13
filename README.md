@@ -1,6 +1,6 @@
 # MineMelody (Fabric · Minecraft 26.3)
 
-Armá tu propia playlist con la música de Minecraft. Se acabaron los 20 minutos de silencio entre canciones.
+Crea tu propia playlist con la música de Minecraft. Se acabaron los 20 minutos de silencio entre canciones.
 
 - **Botón en Opciones → Música y sonidos → "Playlist de música..."**, o tecla **M** dentro del juego.
 - Modos: en orden, aleatorio (sin repetir hasta pasar por todas) y repetir una.
