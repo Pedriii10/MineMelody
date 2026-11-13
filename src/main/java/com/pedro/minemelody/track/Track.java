@@ -37,7 +37,9 @@ public record Track(Identifier id, Identifier eventId, Sound sound, TrackGroup g
 			String disc = eventId.getPath().substring(DISC_EVENT_PREFIX.length());
 			return "jukebox_song." + eventId.getNamespace() + "." + disc;
 		}
-		return id.toShortLanguageKey();
+		// toShortLanguageKey() deja las barras ("music/game/sweden"), pero los archivos de idioma
+		// usan puntos ("music.game.sweden"). Vanilla hace este mismo replace en NowPlayingToast.
+		return id.toShortLanguageKey().replace('/', '.');
 	}
 
 	public Component title() {
