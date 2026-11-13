@@ -4,6 +4,12 @@ All notable changes to MineMelody are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-11-13
+
+### Fixed
+- Game music tracks now show their real names ("Aaron Cherof - A Familiar Room")
+  instead of file names ("a_familiar_room"). Music discs were not affected.
+
 ## [1.0.0] - 2026-11-13
 
 First public release on Modrinth. Includes everything below.
@@ -60,4 +66,5 @@ First public release on Modrinth. Includes everything below.
 - In survival, music discs unlock once you have them in your inventory (per world).
 - "Now playing" banner and instant track preview.
 
+[1.0.1]: https://github.com/Pedriii10/MineMelody/releases/tag/v1.0.1
 [1.0.0]: https://github.com/Pedriii10/MineMelody/releases/tag/v1.0.0
