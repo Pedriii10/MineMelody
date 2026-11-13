@@ -1,6 +1,6 @@
 # MineMelody (Fabric · Minecraft 26.3)
 
-<img width="800" height="500" alt="MineMelody-Logo" src="https://github.com/user-attachments/assets/1142936d-0ff6-4875-9544-534602cc0c63" />
+<img width="900" height="900" alt="MineMelody-Logo" src="https://github.com/user-attachments/assets/1142936d-0ff6-4875-9544-534602cc0c63" />
 
 
 
