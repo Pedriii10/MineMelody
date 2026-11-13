@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/logo.png" alt="MineMelody" width="256"></p>
+
 # MineMelody (Fabric · Minecraft 26.3)
 
 Armá tu propia playlist con la música de Minecraft. Se acabaron los 20 minutos de silencio entre canciones.
