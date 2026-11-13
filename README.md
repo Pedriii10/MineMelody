@@ -41,9 +41,9 @@ La primera vez Gradle descarga Minecraft y lo prepara: tarda varios minutos, es 
 
 Minecraft tiene un "DJ", el `MusicManager`. Cada tick:
 
-1. pregunta qué música corresponde (`getSituationalMusic`: bioma, Nether, bajo el agua...),
-2. si la canción terminó, espera `nextSongDelay` ticks (¡minutos!),
-3. llama a `startPlaying(music)`, y el `SoundManager` elige **una canción al azar** de ese evento.
+1. Pregunta qué música corresponde (`getSituationalMusic`: bioma, Nether, bajo el agua...),
+2. Si la canción terminó, espera `nextSongDelay` ticks (¡minutos!),
+3. Llama a `startPlaying(music)`, y el `SoundManager` elige **una canción al azar** de ese evento.
 
 El mod se mete con **Mixins** en tres puntos:
 
